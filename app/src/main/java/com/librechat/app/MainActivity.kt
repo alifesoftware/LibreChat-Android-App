@@ -10,7 +10,6 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Build
-import android.view.View
 import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -22,15 +21,13 @@ import android.window.OnBackInvokedDispatcher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.librechat.app.databinding.ActivityMainBinding
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class MainActivity : AppCompatActivity() {
     private val userAgent =
         "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.135 Mobile Safari/537.36"
-    private val chatUrl = "https://librechat-librechat.hf.space"
+    private val chatUrl = "https://team.ttg.ai/c/new"
     private lateinit var binding: ActivityMainBinding
     private lateinit var webView: WebView
-    private lateinit var swipeLayout: SwipeRefreshLayout
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
 
     private val fileChooser =
@@ -58,7 +55,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         webView = binding.webView
-        swipeLayout = binding.swipeRefreshLayout
 
         // Add android:configChanges to handle orientation and screen size changes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -102,10 +98,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                swipeLayout.isRefreshing = false
-                swipeLayout.isEnabled = !(webView.url.toString().contains(chatUrl) &&
-                        !webView.url.toString().contains("/auth"))
-
                 webView.evaluateJavascript(
                     """
                     (() => {
@@ -150,10 +142,6 @@ class MainActivity : AppCompatActivity() {
                 fileChooser.launch(chooserIntent)
                 return true
             }
-        }
-
-        swipeLayout.setOnRefreshListener {
-            webView.reload()
         }
 
         // Check if WebView already has a saved state
