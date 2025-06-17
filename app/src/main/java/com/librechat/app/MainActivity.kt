@@ -100,15 +100,31 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 webView.evaluateJavascript(
                     """
-                    (() => {
-                      navigator.clipboard.writeText = (text) => {
-                            Android.copyToClipboard(text);
-                            return Promise.resolve();
-                        }
-                        
-                      document.querySelector('input[type="file"]').addEventListener('change', (event) => {
-                            Android.openFileChooser();
-                      });
+                    (function() {
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText = function(text) {
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'clipboard',
+                            data: text
+                          }));
+                          return Promise.resolve();
+                        };
+                      }
+                
+                      function patchInputs() {
+                        var textareas = document.querySelectorAll('textarea');
+                        textareas.forEach(function(textarea) {
+                          textarea.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                              e.stopPropagation();
+                            }
+                          }, true);
+                        });
+                      }
+                      document.addEventListener('DOMContentLoaded', patchInputs);
+                      setTimeout(patchInputs, 2000);
+                
+                      true;
                     })();
                     """.trimIndent(),
                     null
